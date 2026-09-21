@@ -1,4 +1,4 @@
-#DDQN-RL-MT5
+### DDQN-RL-MT5
 
 ### A Memory-Augmented Reinforcement Learning Trading System for MetaTrader 5
 
