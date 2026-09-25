@@ -340,7 +340,7 @@ MetaQuotes\Terminal\terminal\MQL5\Files
 ```
 Or, you do not need to manually import the files from inside the EA.
 
-When the EA starts, it automatically attempts to load the DQN and enabled memory systems. The current initialization process restores unified model persistence and then loads Danger Memory, Q-Memory and DD-event memory when those features are enabled. :contentReference[oaicite:3]{index=3} :contentReference[oaicite:4]{index=4}
+When the EA starts, it automatically attempts to load the DQN and enabled memory systems. The current initialization process restores unified model persistence and then loads Danger Memory, Q-Memory and DD-event memory when those features are enabled.
 
 ---
 
