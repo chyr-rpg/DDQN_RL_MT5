@@ -1,137 +1,390 @@
-### DDQN-RL-MT5
+# DDQN-RL-MT5
 
 ### A Memory-Augmented Reinforcement Learning Trading System for MetaTrader 5
 
-Adaptive-DDQN-MT5 is a self-contained reinforcement-learning research project implemented natively in MQL5.
+DDQN-RL-MT5 is a personal research project exploring how reinforcement learning and neural networks can be used directly inside MetaTrader 5.
 
-The project explores how a trading agent can learn from market experience, retain both successful and adverse trading episodes, recognise changing market regimes, and adapt future decisions through persistent memory.
+The system is written natively in **MQL5**. It does not require Python or an external machine-learning runtime during execution.
 
-> **Research focus:** studying adaptive decision-making and reinforcement learning inside the MetaTrader 5 environment with automatic trading system.
+The main research question is relatively simple:
 
----
+> **Can a trading system learn from its previous decisions, remember both good and bad trading experiences, and use that information to change future behaviour?**
 
-## Project Editions
+The current implementation combines a Double Dueling DQN with persistent memory, experience replay, market-regime awareness and risk-sensitive decision support.
 
-Adaptive-DDQN-MT5 is maintained in two editions.
-
-| Edition | Purpose |
-| --- | --- |
-| **Public Learning Edition** | A simplified but functional MQL5 DQN implementation that can be compiled, inspected, modified and studied. |
-| **Private Research Edition** | The current full research system containing the latest DDQN, memory, replay, risk and adaptive decision architecture. |
-
-The documentation in this repository describes the **broader current research architecture**, while the source file under `src/` provides an accessible implementation of its foundational reinforcement-learning concepts.
-
-The public implementation should therefore be treated as a **learning edition**, rather than a line-for-line reproduction of the latest private research system.
+The execution layer is still largely based on a **grid / basket trading framework**, so I see this project as an experimental environment for studying neural decision-making rather than a finished general-purpose RL trading solution.
 
 ---
 
-## Why This Project?
+## Why I Shared It
 
-Most Expert Advisors execute predefined trading rules.
+This project started as a personal experiment in applying reinforcement learning to trading decisions inside MT5.
 
-This project explores a different question:
+I previously ran the system on a demo account across different instruments and trading frequencies. That historical account record was later lost when the demo-server environment became unavailable, so I do not use those earlier results as evidence of performance here.
 
-> **Can an MT5 trading system learn from what happened after its previous decisions and use those experiences to change future behaviour?**
+I decided to publish the project because I am more interested in the broader problem:
 
-The current research architecture combines a Double Dueling Deep Q-Network with persistent experience memory, regime-aware learning, risk-sensitive rewards and historical danger recognition.
+> **Where can neural networks actually contribute useful information to trading decisions?**
 
-The objective is not simply to predict the next market move.
+For example:
 
-The broader research problem is to study whether an agent can learn:
+- how should market state be represented?
+- how should trading outcomes be rewarded?
+- can rare drawdown events be remembered more effectively?
+- should historical experience influence the current Q-values?
+- can different volatility regimes develop different behaviour?
+- how much control should the neural model have over a conventional trading framework?
 
-- when a market state is favourable,
-- when an apparently profitable behaviour carries excessive risk,
-- when current conditions resemble historically dangerous episodes,
-- how its own basket exposure should influence the next decision,
-- and how accumulated experience should alter future action preferences.
-
----
-
-## Why I Shared This Project
-
-This project started as a personal experiment in applying reinforcement learning and neural networks to trading decisions inside MetaTrader 5.
-
-I previously ran the system on a demo account across different markets and trading frequencies, but that historical record was lost when the demo-server environment became unavailable. Because of that, I do not use those earlier results as evidence of performance here.
-
-I decided to share the project mainly because I am interested in a broader question:
-
-> **How can neural networks contribute meaningfully to trading decisions, rather than simply being added on top of a conventional strategy?**
-
-The current implementation is still heavily influenced by a **grid / basket-based execution framework**, so its use of reinforcement learning remains constrained by that structure.
-
-I therefore see this repository as an ongoing research project rather than a finished trading system, and I am particularly interested in alternative ideas for state design, reward functions, action spaces, memory systems and ways of combining neural models with conventional risk controls.
-
----
-## Public vs. Research Edition
-
-The source code published in this repository is a **Learning Edition** designed
-to demonstrate the core reinforcement-learning workflow in a readable and
-reproducible form.
-
-My current private research implementation is substantially more complex and
-includes additional components such as:
-
-- Double DQN and target-network learning
-- dueling value / advantage architecture
-- multiple feature encoders
-- regime-aware model selection
-- specialized replay and memory systems
-- drawdown and danger-state memory
-- additional basket and risk-management logic
-- model persistence and decision-support mechanisms
-
-The public version is therefore **not a line-for-line release of the latest
-research system**.
-
-The full implementation remains private while the architecture continues to
-evolve. Selected access may be considered for academic, technical or
-professional collaboration.
+I am still experimenting with these questions, and feedback or alternative approaches are welcome.
 
 ---
 
-## Core Research Concepts
+# Getting Started
 
-### 🧠 Native Neural Network
+## Requirements
 
-The neural network, forward inference, backpropagation and reinforcement-learning logic are implemented directly in MQL5 without requiring an external Python or machine-learning runtime.
+You need:
 
-This allows the learning system to operate directly inside MetaTrader 5 and the Strategy Tester environment.
+```text
+MetaTrader 5
+MetaEditor
+An MT5 trading or demo account
+Historical data for the instruments you want to test
+```
 
-### 🔀 Multi-Branch State Encoding
+The neural network and reinforcement-learning logic run directly inside MQL5.
 
-In the current research architecture, different groups of information are processed separately before being combined into a shared neural representation.
+No external Python environment is required.
 
-These feature groups include:
+---
 
-- basket and exposure state,
-- technical indicator state,
-- volatility state,
-- market structure,
-- and supply/demand and candle context.
+## Repository Structure
 
-This allows fundamentally different forms of information to develop their own internal representations before being fused by the neural policy.
+The full implementation has been separated into smaller MQL5 modules so the system is easier to read and modify.
 
-### ♻️ Experience Replay
+```text
+DDQN_RL_MT5/
+│
+├── README.md
+│
+├── src/
+│   ├── AdaptiveDDQN_MT5.mq5
+│   │
+│   └── modules/
+│       ├── 00_InputsAndGlobals.mqh
+│       ├── 01_DDQNNetworkCore.mqh
+│       ├── 02_MemoryModels.mqh
+│       ├── 03_CoreUtilities.mqh
+│       ├── 04_RewardsAndRisk.mqh
+│       ├── 05_DecisionSupport.mqh
+│       ├── 06_GridRegimeIndicators.mqh
+│       ├── 07_StateAndStructureFeatures.mqh
+│       ├── 08_MemoryAndReplay.mqh
+│       ├── 09_DDQNTraining.mqh
+│       ├── 10_DDEventAndDangerLearning.mqh
+│       ├── 11_PendingTransitions.mqh
+│       ├── 12_TradeExecution.mqh
+│       ├── 13_StrategyManager.mqh
+│       ├── 14_ZonesAndVisualization.mqh
+│       ├── 15_Persistence.mqh
+│       └── 16_Runtime.mqh
+│
+├── doc/
+│   ├── architecture.md
+│   ├── learning-system.md
+│   ├── memory-system.md
+│   └── limitations.md
+│
+├── tested_assets/
+│   ├── SP500/
+│   ├── eurusd/
+│   └── xauusd/
+│
+└── legacy/
+    └── AdaptiveDDQN_MT5_monolithic_reference.mq5
+```
 
-The agent learns from previous state-action-outcome transitions instead of relying only on the most recent observation.
+The `.mqh` files are not separate EAs.
 
-The current research system extends standard replay with specialised memory banks for different classes of trading experience.
+When the main `.mq5` file is compiled, MetaEditor includes all modules and produces **one `.ex5` Expert Advisor**.
 
-### 🗃️ Memory-Augmented Learning
+Conceptually:
 
-The broader architecture maintains multiple forms of trading memory, including:
+```text
+AdaptiveDDQN_MT5.mq5
+        │
+        ├── Neural Network
+        ├── Memory
+        ├── Replay
+        ├── Risk
+        ├── Execution
+        └── Runtime
+        │
+        ▼
+      Compile
+        │
+        ▼
+AdaptiveDDQN_MT5.ex5
+```
 
-- recent experience,
-- dangerous episodes,
-- deep-basket sequences,
-- efficient periods,
-- episode memory,
-- pattern memory,
-- regime-event memory,
-- drawdown-event memory,
-- and persistent Q-state memory.
+---
 
-The intention is to combine:
+# Installation
+
+Copy the complete source folder into your MT5 Expert Advisor directory.
+
+For example:
+
+```text
+MQL5/
+└── Experts/
+    └── Adaptive-DDQN-MT5/
+        ├── AdaptiveDDQN_MT5.mq5
+        └── modules/
+            ├── 00_InputsAndGlobals.mqh
+            ├── ...
+            └── 16_Runtime.mqh
+```
+
+In MetaTrader 5:
+
+```text
+File
+→ Open Data Folder
+→ MQL5
+→ Experts
+```
+
+Place the files there and open:
+
+```text
+AdaptiveDDQN_MT5.mq5
+```
+
+in MetaEditor.
+
+Press:
+
+```text
+Compile
+```
+
+Only the main `.mq5` file needs to be compiled.
+
+If the build is successful, the EA will appear under:
+
+```text
+Navigator
+→ Expert Advisors
+```
+
+in MetaTrader 5.
+
+---
+
+# Running It in Strategy Tester
+
+I strongly recommend starting with **Strategy Tester** rather than a live chart.
+
+Open:
+
+```text
+View
+→ Strategy Tester
+```
+
+Select the compiled EA and choose:
+
+```text
+Instrument
+Timeframe
+Testing period
+Initial deposit
+Execution / modelling mode
+EA inputs
+```
+
+Then start the test.
+
+For research purposes, I normally use the Strategy Tester to observe both the trading behaviour and how the learning system develops over time.
+
+The system may:
+
+```text
+observe market state
+        ↓
+estimate Q-values
+        ↓
+select an action
+        ↓
+manage / open positions
+        ↓
+observe the result
+        ↓
+calculate reward
+        ↓
+store the experience
+        ↓
+replay historical experience
+        ↓
+update the neural network
+```
+
+This process repeats throughout the test.
+
+---
+
+## First Run
+
+On a fresh run, the system may begin with:
+
+- newly initialised neural-network weights,
+- little or no replay experience,
+- limited historical memory,
+- and a relatively high exploration rate.
+
+This means the early part of a training run should not be interpreted in the same way as a mature policy.
+
+The agent needs experience before the learned behaviour becomes meaningful.
+
+---
+
+## Continuing Previous Learning
+
+The system can persist parts of its neural and memory state to disk.
+
+Depending on the enabled components, saved information can include neural-network state and different forms of learned memory.
+
+MT5 normally stores these files inside its `MQL5\Files` or Strategy Tester agent environment.
+
+A typical tester location may look similar to:
+
+```text
+MetaQuotes/
+Tester/
+<TESTER-ID>/
+Agent-127.0.0.1-<PORT>/
+MQL5/
+Files/
+```
+
+The exact location depends on your MT5 installation and which tester agent is running.
+
+### Important
+
+Some persistence filenames use:
+
+```cpp
+MQLInfoString(MQL_PROGRAM_NAME)
+```
+
+so changing the name of the main `.mq5` program can also change the names of the files the EA tries to load.
+
+If you want to continue using existing trained state, keeping the same main EA filename is recommended.
+
+---
+
+# How the System Is Organised
+
+## 1. Market State
+
+The agent does not look only at price.
+
+Its state can include several groups of information:
+
+```text
+Basket / Exposure
+Indicators
+Volatility
+Market Structure
+Zone / Candle Context
+```
+
+These inputs describe both the market and the EA's own current position state.
+
+---
+
+## 2. Multi-Branch Neural Encoding
+
+Different feature groups are processed through separate neural branches before being combined.
+
+Conceptually:
+
+```text
+Basket State ─────────┐
+Indicators ───────────┤
+Volatility ───────────┤
+Market Structure ─────┤
+Zone / Candle Data ───┤
+                      ▼
+              Shared Representation
+                      ▼
+                Dueling DDQN
+```
+
+This allows different types of market information to develop their own internal representation before being fused together.
+
+---
+
+## 3. Double Dueling DQN
+
+The policy estimates three main action values:
+
+```text
+Q(HOLD)
+Q(BUY)
+Q(SELL)
+```
+
+The dueling architecture separates:
+
+```text
+State Value
+     +
+Action Advantage
+     ↓
+Q-Values
+```
+
+The Double-DQN structure uses separate online and target-network logic to reduce some of the overestimation problems found in standard DQN training.
+
+---
+
+## 4. Experience Replay
+
+The system does not learn only from the latest trade.
+
+Previous transitions can be stored and replayed during training.
+
+The broader memory architecture includes several types of experience, such as:
+
+```text
+Main Replay
+Recent Experience
+Danger Experience
+Deep-Basket Experience
+Efficient Experience
+```
+
+This lets the agent repeatedly revisit different classes of historical behaviour.
+
+---
+
+## 5. Longer-Term Memory
+
+The project also experiments with memory beyond normal replay.
+
+This includes concepts such as:
+
+```text
+Episode Memory
+Pattern Memory
+Regime-Event Memory
+Drawdown-Event Memory
+Persistent Q-Memory
+```
+
+The idea is to combine:
 
 ```text
 Neural Generalisation
@@ -139,277 +392,169 @@ Neural Generalisation
 Historical Recall
 ```
 
-rather than relying on neural-network weights alone.
-
-### 🌡️ Regime-Aware Learning
-
-Different learning behaviour can be maintained for different volatility regimes.
-
-This allows market context to influence both inference and training, rather than assuming that one policy behaves identically under all volatility conditions.
-
-### 🛡️ Risk-Aware Decision Support
-
-Raw neural-network outputs are not treated as the entire decision process.
-
-The current research architecture supplements learned action values with historical memory, drawdown context, basket state and adaptive risk mechanisms before reaching the execution layer.
+rather than expecting neural-network weights alone to represent every useful past experience.
 
 ---
 
-## System Architecture
+## 6. Regime Awareness
 
-At a high level, the current research system follows:
-<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/41c7bd77-a75b-496d-85b6-b56dce50be7b" />
+The system can distinguish between different volatility environments.
+
+Different model behaviour can therefore develop under different market conditions instead of assuming that one policy should behave identically all the time.
+
+---
+
+## 7. Decision Support
+
+The final decision is not based only on raw neural-network output.
+
+Before execution, the system can also consider:
 
 ```text
-Market Environment
-        │
-        ▼
-State Construction
-        │
-        ├── Basket / Exposure
-        ├── Indicators
-        ├── Volatility
-        ├── Market Structure
-        └── Zone / Candle Context
-        │
-        ▼
-Feature Branch Encoders
-        │
-        ▼
-Shared Neural Representation
-        │
-        ▼
-Double Dueling DQN
-        │
-        ▼
-Q(HOLD) / Q(BUY) / Q(SELL)
-        │
-        ▼
-Memory & Decision Support
-        │
-        ▼
-Risk / Execution Layer
-        │
-        ▼
-Trading Outcome
-        │
-        ▼
-Reward + Experience Replay
-        │
-        └──────────────► Learning
+Current basket exposure
+Historical Q-memory
+Danger memory
+Drawdown events
+Regime context
+Risk controls
 ```
 
-A more detailed explanation is available in:
+This means the neural network remains the core learning mechanism, but it operates inside a wider decision-support framework.
+
+---
+
+## 8. Trade Execution
+
+The current strategy framework uses basket and grid-style position management.
+
+This is an important limitation of the project.
+
+The neural network is learning inside an execution system whose behaviour is already influenced by:
+
+```text
+Basket exposure
+Grid additions
+Average entry price
+Basket profit targets
+Drawdown
+Position management
+```
+
+The repository should therefore not be interpreted as evidence that DDQN itself provides a complete trading strategy.
+
+I mainly use the framework as a practical environment to study how reinforcement learning behaves when it interacts with an actual trading and risk-management system.
+
+---
+
+# Where to Start Reading the Code
+
+If you want to understand the implementation rather than immediately run it, I suggest starting with these modules:
+
+```text
+01_DDQNNetworkCore.mqh
+```
+
+Neural-network structures, forward propagation and branch encoders.
+
+```text
+07_StateAndStructureFeatures.mqh
+```
+
+How the market and basket state is converted into neural-network input.
+
+```text
+08_MemoryAndReplay.mqh
+```
+
+Replay buffers and memory systems.
+
+```text
+09_DDQNTraining.mqh
+```
+
+Double-DQN targets, network updates and training.
+
+```text
+10_DDEventAndDangerLearning.mqh
+```
+
+Drawdown-event and danger-state learning.
+
+```text
+13_StrategyManager.mqh
+```
+
+Where the learning system is connected to the trading logic.
+
+```text
+16_Runtime.mqh
+```
+
+The MT5 lifecycle, including `OnInit`, `OnTick`, `OnTimer` and shutdown behaviour.
+
+For the broader architecture, see:
 
 [**System Architecture →**](doc/architecture.md)
 
----
+[**Learning System →**](doc/learning-system.md)
 
-## Public Learning Edition
+[**Memory System →**](doc/memory-system.md)
 
-A simplified implementation is available in:
-
-[`src/AdaptiveDQN_MT5_LearningEdition.mq5`](src/AdaptiveDQN_MT5_LearningEdition.mq5)
-
-The purpose of this version is to provide a practical and readable example of how reinforcement learning can be implemented directly inside MQL5.
-
-The public learning edition includes:
-
-- a native MQL5 neural network,
-- two hidden layers,
-- HOLD / BUY / SELL action selection,
-- epsilon-greedy exploration,
-- multi-symbol support,
-- market and basket state construction,
-- volatility features,
-- higher-timeframe context,
-- supply/demand-zone features,
-- basic risk-aware reward shaping,
-- adaptive grid and basket logic,
-- and persistent neural-network save/load.
-
-It is intentionally smaller than the current private research edition.
-
-The goal is to make the foundational learning process accessible without exposing the complete proprietary research architecture.
+[**Limitations →**](doc/limitations.md)
 
 ---
 
-## Private Research Edition
+# Learning Edition
 
-The current full implementation is maintained separately in a private repository.
-
-The private research edition contains later-generation components including:
+A smaller implementation is also included for readers who want to understand the basic idea before going through the complete architecture.
 
 ```text
-Double DQN
-Dueling DQN
-Feature-specific branch encoders
-Regime-specific model banks
-Online and target networks
-
-Main experience replay
-Recent replay
-Danger replay
-Deep-basket replay
-Efficient replay
-
-Persistent Q-memory
-Episode memory
-Pattern memory
-Regime-event memory
-Drawdown-event memory
-
-Danger Brain
-Delayed transition learning
-Dense basket-health feedback
-Risk-aware reward engineering
-Unified decision support
-Adaptive basket-risk controls
+src/AdaptiveDQN_MT5_LearningEdition.mq5
 ```
 
-These components represent ongoing research and proprietary trading-system development and are therefore not distributed publicly.
-
-Selected access may be considered for legitimate:
-
-- academic research,
-- technical review,
-- professional evaluation,
-- or research collaboration.
-
-Access is provided at the author's discretion.
-
----
-
-## How the Agent Learns
-
-The reinforcement-learning process can be simplified as:
+The Learning Edition focuses on a simpler workflow:
 
 ```text
-Observe State
-      ↓
-Estimate Q-Values
-      ↓
-Select Action
-      ↓
-Observe Consequence
-      ↓
-Calculate Reward
-      ↓
-Store Experience
-      ↓
-Replay Historical Experience
-      ↓
-Update Neural Network
-      ↓
-Repeat
+State
+  ↓
+DQN
+  ↓
+HOLD / BUY / SELL
+  ↓
+Reward
+  ↓
+Network Update
 ```
 
-The complete research architecture extends this process with delayed outcomes, specialised replay memory, regime-specific learning and risk-aware historical context.
+I recommend starting there if you are new to reinforcement learning or MQL5 neural-network programming.
 
-Read more:
-
-[**How the Agent Learns →**](doc/learning-system.md)
-
+The modular DDQN implementation is more suitable once the basic workflow is already familiar.
 
 ---
 
-## Public Source vs Research Documentation
+# Tested Markets
 
-An important distinction in this repository is:
+I have used the system experimentally across different markets and trading frequencies.
 
-```text
-Public Source Code
-        ↓
-Foundational implementation
-of the learning system
+Current example results and configurations are available under:
 
-Research Documentation
-        ↓
-Current broader architecture
-under active development
-```
+- [`tested_assets/SP500/`](tested_assets/SP500/)
+- [`tested_assets/eurusd/`](tested_assets/eurusd/)
+- [`tested_assets/xauusd/`](tested_assets/xauusd/)
 
-Some components described in the architecture and learning documentation are therefore **not present in the public source file**.
+These results should be treated as **research observations**, not evidence of future profitability.
 
-This separation is intentional.
-
-The public source is designed to show how the core reinforcement-learning workflow can be implemented in MQL5, while the documentation records the direction and structure of the more advanced private research system.
+Different instruments also use different contract specifications and strategy settings, so results should not be compared as if they were identical experiments.
 
 ---
 
-## Explore the Project
+# Research Limitations
 
-| Section | Description |
-| --- | --- |
-| [System Architecture](doc/architecture.md) | Full architectural overview of the current research system |
-| [How the Agent Learns](doc/learning-system.md) | Reinforcement-learning and DDQN learning process |
-| `doc/memory-system.md` | Memory and specialised replay architecture *(in progress)* |
-| `doc/limitations.md` | Research scope, limitations and risk considerations *(planned)* |
-| [Public Learning Source](src/AdaptiveDQN_MT5_LearningEdition.mq5) | Simplified functional MQL5 implementation |
+There are several important limitations.
 
----
+The system includes averaging and basket behaviour, meaning exposure can increase when the market moves against existing positions.
 
-## Research Direction
-
-The project is intended to investigate questions such as:
-
-> How does policy behaviour change as trading experience accumulates?
-
-> Can the agent distinguish efficient profitable trades from profitable but high-risk recovery sequences?
-
-> Can specialised replay memory help the system learn from rare drawdown events?
-
-> Do different volatility regimes produce meaningfully different learned policies?
-
-> Can historical memory reduce repetition of previously harmful basket sequences?
-
-> How should the agent's own exposure affect its interpretation of the same market environment?
-
-Future repository experiments will focus increasingly on **policy evolution, reward behaviour, replay composition, drawdown response and learning diagnostics**, rather than presenting backtest return alone.
-
----
-
-## Strategy Tester Research
-
-One advantage of implementing the learning architecture directly in MQL5 is that the agent can be studied inside MetaTrader 5 Strategy Tester.
-
-Future visual diagnostics will expose variables such as:
-
-```text
-Current Regime
-
-Q(HOLD)
-Q(BUY)
-Q(SELL)
-
-Selected Action
-
-Exploration Rate
-
-Episode Reward
-
-Danger State
-
-Basket Depth
-
-Replay Memory
-
-Memory Confidence
-```
-
-The intention is to make not only the resulting trades visible, but also the evolution of the agent's internal decision process.
-
----
-
-## Research Scope & Limitations
-
-Adaptive-DDQN-MT5 is an experimental reinforcement-learning project.
-
-It should not be interpreted as evidence that reinforcement learning removes trading risk or guarantees future profitability.
-
-The system contains basket and averaging behaviour, meaning exposure can increase during adverse market movement.
-
-Learning and historical memory may influence this behaviour but cannot eliminate:
+Reinforcement learning and historical memory may help influence those decisions, but they do not remove:
 
 ```text
 Market Risk
@@ -417,34 +562,70 @@ Model Risk
 Execution Risk
 Liquidity Risk
 Regime-Change Risk
-Tail-Event Risk
+Tail Risk
+Overfitting Risk
 ```
 
-Backtesting and historical learning results do not guarantee future performance.
+Backtesting also depends heavily on data quality, modelling assumptions, spread, execution and parameter selection.
 
-The current research system is better suited to **controlled research, Strategy Tester experimentation and supervised trading-system development** than fully unattended operation.
+For that reason, I currently see the project as more suitable for:
 
----
+```text
+Strategy Tester research
+controlled experimentation
+demo-account testing
+supervised trading-system development
+```
 
-## Source Availability
-
-The public learning edition is distributed for technical study and experimentation.
-
-The complete current research implementation is maintained privately.
-
-Copyright is retained by the author.
-
-No permission is granted to redistribute, sublicense, sell or incorporate proprietary private implementation components into another product without explicit authorisation.
+rather than unattended live deployment.
 
 ---
 
-## Disclaimer
+# Current Research Questions
 
-This repository is provided for research, educational and technical experimentation purposes.
+Some questions I am still exploring include:
 
-Nothing in this repository constitutes investment advice, a recommendation to trade, or a representation of future trading performance.
+- Can neural models reduce harmful grid additions?
+- Should the network control execution directly, or act as a decision layer?
+- Can dangerous historical episodes improve current risk decisions?
+- How much replay should come from recent versus rare events?
+- How stable are learned policies across different instruments?
+- Can regime-specific policies generalise better than one universal model?
+- How should reward distinguish efficient profit from high-risk recovery?
 
-Any live-market experimentation should be conducted with appropriate independent risk controls and supervision.
+I expect the architecture to continue changing as these questions are tested.
+
+---
+
+# Contributions and Discussion
+
+This repository is mainly shared for technical discussion and experimentation.
+
+I am particularly interested in alternative ideas around:
+
+```text
+State representation
+Reward design
+Replay sampling
+Memory architecture
+Regime modelling
+Risk-aware reinforcement learning
+Trading action spaces
+```
+
+If you are experimenting with similar ideas, feel free to open an issue or discuss possible improvements.
+
+---
+
+# Disclaimer
+
+This repository is provided for research, educational and technical experimentation.
+
+It does not constitute investment advice or a recommendation to trade.
+
+Historical tests, reinforcement-learning behaviour and simulated results do not guarantee future performance.
+
+Any market experimentation should use independent risk controls and appropriate supervision.
 
 ---
 
