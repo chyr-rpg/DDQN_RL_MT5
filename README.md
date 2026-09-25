@@ -220,21 +220,430 @@ update the neural network
 ```
 
 This process repeats throughout the test.
+# Using the EA on a Live or Demo Account
+
+The EA can also run on a normal MT5 chart after training has been completed in Strategy Tester.
+
+For live use, I recommend treating the workflow as:
+
+```text
+Train / test in Strategy Tester
+        ↓
+Save the learned model and memory
+        ↓
+Move the saved .dat files to the live terminal
+        ↓
+Run the EA with TrainingMode = false
+        ↓
+Let the trained policy + memory handle inference
+```
+
+I would normally test this process on a **demo account first** before using it with real capital.
 
 ---
 
-## First Run
+## 1. Train the model first
 
-On a fresh run, the system may begin with:
+The system is designed to save its learned state so that a later MT5 session can continue from previously trained experience.
 
-- newly initialised neural-network weights,
-- little or no replay experience,
-- limited historical memory,
-- and a relatively high exploration rate.
+During training, keep:
 
-This means the early part of a training run should not be interpreted in the same way as a mature policy.
+```text
+TrainingMode = true
+SaveQTable = true
+```
 
-The agent needs experience before the learned behaviour becomes meaningful.
+and, if you want to preserve the broader memory system:
+
+```text
+SaveArchiveMemory = true
+SaveReplayBanks = true
+SaveDangerMemory = true
+SaveQMemory = true
+SaveDDEventMemory = true
+```
+
+When the EA is removed, the tester stops, or MT5 deinitializes the EA, the current implementation saves the DQN together with enabled memory components. :contentReference[oaicite:0]{index=0}
+
+The unified persistence system can save the main DQN, regime-specific networks, archive memories and replay banks. :contentReference[oaicite:1]{index=1}
+
+---
+
+## 2. Find the saved memory files
+
+When the EA runs inside Strategy Tester, the generated files are stored inside the tester agent's:
+
+```text
+MQL5/Files/
+```
+
+directory.
+
+Depending on which components are enabled, you may see files similar to:
+
+```text
+AdaptiveDDQN_MT5_DQN_MAIN_XAUUSD.dat
+
+AdaptiveDDQN_MT5_DQN_MAIN_XAUUSD_R0.dat
+AdaptiveDDQN_MT5_DQN_MAIN_XAUUSD_R1.dat
+AdaptiveDDQN_MT5_DQN_MAIN_XAUUSD_R2.dat
+
+AdaptiveDDQN_MT5_ARCHIVE_Episodes_XAUUSD.dat
+AdaptiveDDQN_MT5_ARCHIVE_Patterns_XAUUSD.dat
+AdaptiveDDQN_MT5_ARCHIVE_Regimes_XAUUSD.dat
+
+AdaptiveDDQN_MT5_REPLAY_Main_XAUUSD.dat
+AdaptiveDDQN_MT5_REPLAY_Danger_XAUUSD.dat
+AdaptiveDDQN_MT5_REPLAY_DeepBasket_XAUUSD.dat
+AdaptiveDDQN_MT5_REPLAY_Efficient_XAUUSD.dat
+AdaptiveDDQN_MT5_REPLAY_Recent_XAUUSD.dat
+
+AdaptiveDDQN_MT5_DangerMem_XAUUSD.dat
+AdaptiveDDQN_MT5_QMem_XAUUSD.dat
+AdaptiveDDQN_MT5_DDEvents_XAUUSD.dat
+```
+
+The exact filenames are built from the EA program name and symbol. :contentReference[oaicite:2]{index=2}
+
+A local Strategy Tester directory normally looks similar to:
+
+```text
+MetaQuotes/
+└── Tester/
+    └── Agent-.../
+        └── MQL5/
+            └── Files/
+```
+
+If you cannot find the files directly, searching the MT5 data directory for:
+
+```text
+*.dat
+```
+
+or the EA name is usually the easiest approach.
+
+---
+
+## 3. Move the trained files to the live terminal
+
+The Strategy Tester and the normal MT5 terminal use different file environments.
+
+For normal demo or live execution, open:
+
+```text
+MT5
+MetaQuotes\Tester\terminal\Agent(that runs the backtesting)\MQL5
+→ File
+→ Copy the trained `.dat` files into
+MetaQuotes\Terminal\terminal\MQL5\Files
+
+Or, you do not need to manually import the files from inside the EA.
+
+When the EA starts, it automatically attempts to load the DQN and enabled memory systems. The current initialization process restores unified model persistence and then loads Danger Memory, Q-Memory and DD-event memory when those features are enabled. :contentReference[oaicite:3]{index=3} :contentReference[oaicite:4]{index=4}
+
+---
+
+## 4. Keep the same EA filename
+
+This is important.
+
+The EA uses:
+
+```cpp
+MQLInfoString(MQL_PROGRAM_NAME)
+```
+
+when constructing many persistence filenames.
+
+For example:
+
+```text
+AdaptiveDDQN_MT5_DQN_MAIN_XAUUSD.dat
+```
+
+If the model was trained using:
+
+```text
+AdaptiveDDQN_MT5.mq5
+```
+
+but the live version is renamed to:
+
+```text
+AdaptiveDDQN_Live.mq5
+```
+
+the program name changes and the EA may look for a different set of `.dat` files.
+
+For the easiest continuation from training to live inference, keep the same main EA filename.
+
+---
+
+## 5. Attach it to the correct chart
+
+The current full implementation trades the **current chart symbol (`_Symbol`)**. :contentReference[oaicite:5]{index=5}
+
+So if the model was trained for:
+
+```text
+XAUUSD
+```
+
+open an XAUUSD chart and attach the EA there.
+
+Likewise:
+
+```text
+EURUSD model → EURUSD chart
+SP500 model  → corresponding SP500 broker symbol
+```
+
+Broker symbol names can differ, so make sure the live symbol matches the one used when the persistence files were generated.
+
+The default base timeframe is:
+
+```cpp
+BaseTF = PERIOD_CURRENT;
+```
+
+which means the chart timeframe can also affect the EA's base logic unless you explicitly select a fixed `BaseTF`. :contentReference[oaicite:6]{index=6}
+
+For consistency, I normally keep the same timeframe configuration used during training.
+
+---
+
+## 6. Switch off training for live inference
+
+For live operation, set:
+
+```text
+TrainingMode = false
+```
+
+This stops the normal training updates and runs the network primarily as an inference policy.
+
+When `TrainingMode = false`, the current implementation sets:
+
+```cpp
+currentEpsilon = MinExplorationRate;
+```
+
+rather than automatically setting exploration to zero. :contentReference[oaicite:7]{index=7}
+
+This matters because action selection still performs an epsilon-random check before using the neural Q-values. :contentReference[oaicite:8]{index=8}
+
+The current default is:
+
+```text
+MinExplorationRate = 0.02
+```
+
+so even with training disabled there can still be a small amount of random exploration. :contentReference[oaicite:9]{index=9}
+
+If you want deterministic live inference, use:
+
+```text
+TrainingMode = false
+MinExplorationRate = 0.0
+```
+
+If you intentionally want the agent to retain a small exploratory component, you can leave a non-zero minimum epsilon.
+
+---
+
+## 7. Keep the training and live configurations compatible
+
+The trained DQN should be used with a compatible state architecture.
+
+In particular, avoid changing major model settings between training and live use, such as:
+
+```text
+HiddenSize
+HiddenSize2
+ActionCount
+feature branches
+timeframe features
+regime-bank configuration
+state construction
+indicator settings
+structure settings
+symbol
+```
+
+The loader checks the network input dimension against the state dimension. If a compatible model is not found, the EA can initialise a new network instead. :contentReference[oaicite:10]{index=10}
+
+This means that successfully finding a `.dat` file does not necessarily guarantee that the model will be used if the live architecture has changed substantially.
+
+---
+
+## 8. Review the trading-risk settings
+
+Before enabling live execution, review the execution settings separately from the neural model.
+
+The current system is still a basket/grid-based trading framework and can hold multiple positions. The default configuration includes:
+
+```text
+Lots = 0.01
+LotExponent = 1.4
+MaxTrades = 10
+```
+
+so position exposure can increase as the basket develops. :contentReference[oaicite:11]{index=11}
+
+The code also contains optional equity controls such as:
+
+```text
+UseEquityStop
+EquityRiskPercent
+
+UseEquityLossStop
+EquityLossStopAmount
+
+UseGlobalAccountWatchdog
+```
+
+These controls are configurable and some are disabled by default, so they should be reviewed rather than assumed to be active. :contentReference[oaicite:12]{index=12}
+
+For the version published in this repository, I also normally keep:
+
+```text
+UseZScoreEmergencyHedge = false
+```
+
+if I do not want the risk guard to open an opposite hedge against an existing basket.
+
+---
+
+## 9. Start the EA in MT5
+
+Once the `.dat` files are in the correct `MQL5/Files` folder:
+
+```text
+1. Open the intended symbol chart
+2. Select the intended timeframe
+3. Attach AdaptiveDDQN_MT5
+4. Load or review the EA inputs
+5. Set TrainingMode = false
+6. Set MinExplorationRate = 0.0 if deterministic inference is wanted
+7. Enable Algo Trading / AutoTrading in MT5
+8. Allow algorithmic trading in the EA properties
+```
+
+After initialization, check the:
+
+```text
+Experts
+Journal
+```
+
+tabs.
+
+I recommend confirming that the persisted model was actually loaded before allowing the EA to trade.
+
+If the model is not found or is incompatible, the EA can initialize a new DQN instead of continuing the trained model.
+
+---
+
+## 10. What happens during live operation
+
+Once running, the live process is approximately:
+
+```text
+New market data
+      ↓
+Build current state
+      ↓
+Determine volatility regime
+      ↓
+Run DDQN inference
+      ↓
+Retrieve relevant historical memory
+      ↓
+Apply danger / decision-support context
+      ↓
+Q(HOLD), Q(BUY), Q(SELL)
+      ↓
+Risk and execution checks
+      ↓
+Open / manage basket
+```
+
+The system does not simply use the neural-network output directly.
+
+The broader live decision process can also incorporate:
+
+```text
+Persistent Q-memory
+Danger memory
+Historical episodes
+Replay-derived risk context
+Regime information
+Current basket exposure
+Risk controls
+```
+
+This is why transferring the memory files together with the DQN is useful: the live system can continue using more than just the learned network weights.
+
+---
+
+## 11. Restarting MT5
+
+Persistent memory means the EA can continue across sessions.
+
+When the EA is deinitialized, enabled memory systems are saved again. :contentReference[oaicite:13]{index=13}
+
+The next time the same EA is started with the same program name and compatible configuration, those files are loaded again.
+
+So the intended lifecycle is:
+
+```text
+Training
+   ↓
+Save memory
+   ↓
+Live / demo inference
+   ↓
+Stop EA
+   ↓
+Save updated persistent state
+   ↓
+Restart
+   ↓
+Reload state
+```
+
+If you want the live model to remain completely frozen, `TrainingMode = false` prevents the normal DQN training loop, but the wider persistence system may still update usage statistics or live memory depending on which memory features remain enabled.
+
+---
+
+## Recommended first live test
+
+Before moving to a funded account, I would first verify the full workflow on demo:
+
+```text
+Strategy Tester training
+        ↓
+copy .dat files
+        ↓
+demo terminal
+        ↓
+TrainingMode = false
+        ↓
+MinExplorationRate = 0
+        ↓
+small lot size
+        ↓
+confirm model loads correctly
+        ↓
+observe several trading cycles
+```
+
+The purpose of this step is not to prove profitability. It is mainly to confirm that the saved model, memory files, state construction and execution behaviour remain consistent outside Strategy Tester.
+
+---
+
+> **Important:** This remains an experimental reinforcement-learning trading system. A model behaving well in Strategy Tester does not mean it will behave the same way on unseen live data. Execution differences, spreads, liquidity, market-regime changes and model overfitting can all materially change the result.
 
 ---
 
