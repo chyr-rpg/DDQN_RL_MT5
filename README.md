@@ -413,15 +413,12 @@ For consistency, I normally keep the same timeframe configuration used during tr
 
 ---
 
-## 6. Switch off training for live inference
+## 6. You may switch off online training for live inference
 
-For live operation, set:
+*It is recommended to keep online training `TrainingMode = true` as the neural networks will update weights with new prices*
 
-```text
-TrainingMode = false
-```
-
-This stops the normal training updates and runs the network primarily as an inference policy.
+You can set `TrainingMode = false` to test the trained bot. 
+This stops the normal online training and runs the network primarily as an inference policy.
 
 When `TrainingMode = false`, the current implementation sets:
 
@@ -582,103 +579,7 @@ Regime information
 Current basket exposure
 Risk controls
 ```
-
 This is why transferring the memory files together with the DQN is useful: the live system can continue using more than just the learned network weights.
-
----
-
-## 11. Restarting MT5
-
-Persistent memory means the EA can continue across sessions.
-
-When the EA is deinitialized, enabled memory systems are saved again. :contentReference[oaicite:13]{index=13}
-
-The next time the same EA is started with the same program name and compatible configuration, those files are loaded again.
-
-So the intended lifecycle is:
-
-```text
-Training
-   ↓
-Save memory
-   ↓
-Live / demo inference
-   ↓
-Stop EA
-   ↓
-Save updated persistent state
-   ↓
-Restart
-   ↓
-Reload state
-```
-
-If you want the live model to remain completely frozen, `TrainingMode = false` prevents the normal DQN training loop, but the wider persistence system may still update usage statistics or live memory depending on which memory features remain enabled.
-
----
-
-## Recommended first live test
-
-Before moving to a funded account, I would first verify the full workflow on demo:
-
-```text
-Strategy Tester training
-        ↓
-copy .dat files
-        ↓
-demo terminal
-        ↓
-TrainingMode = false
-        ↓
-MinExplorationRate = 0
-        ↓
-small lot size
-        ↓
-confirm model loads correctly
-        ↓
-observe several trading cycles
-```
-
-The purpose of this step is not to prove profitability. It is mainly to confirm that the saved model, memory files, state construction and execution behaviour remain consistent outside Strategy Tester.
-
----
-
-> **Important:** This remains an experimental reinforcement-learning trading system. A model behaving well in Strategy Tester does not mean it will behave the same way on unseen live data. Execution differences, spreads, liquidity, market-regime changes and model overfitting can all materially change the result.
-
----
-
-## Continuing Previous Learning
-
-The system can persist parts of its neural and memory state to disk.
-
-Depending on the enabled components, saved information can include neural-network state and different forms of learned memory.
-
-MT5 normally stores these files inside its `MQL5\Files` or Strategy Tester agent environment.
-
-A typical tester location may look similar to:
-
-```text
-MetaQuotes/
-Tester/
-<TESTER-ID>/
-Agent-127.0.0.1-<PORT>/
-MQL5/
-Files/
-```
-
-The exact location depends on your MT5 installation and which tester agent is running.
-
-### Important
-
-Some persistence filenames use:
-
-```cpp
-MQLInfoString(MQL_PROGRAM_NAME)
-```
-
-so changing the name of the main `.mq5` program can also change the names of the files the EA tries to load.
-
-If you want to continue using existing trained state, keeping the same main EA filename is recommended.
 
 ---
 
