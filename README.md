@@ -22,20 +22,9 @@ This project started as a personal experiment in applying reinforcement learning
 
 I previously ran the system on a demo account across different instruments and trading frequencies. That historical account record was later lost when the demo-server environment became unavailable, so I do not use those earlier results as evidence of performance here.
 
-I decided to publish the project because I am more interested in the broader problem:
+I decided to publish the project because I hope others who are interested in quantitative trading can also study this problem 
 
 > **Where can neural networks actually contribute useful information to trading decisions?**
-
-For example:
-
-- how should market state be represented?
-- how should trading outcomes be rewarded?
-- can rare drawdown events be remembered more effectively?
-- should historical experience influence the current Q-values?
-- can different volatility regimes develop different behaviour?
-- how much control should the neural model have over a conventional trading framework?
-
-I am still experimenting with these questions, and feedback or alternative approaches are welcome.
 
 ---
 
