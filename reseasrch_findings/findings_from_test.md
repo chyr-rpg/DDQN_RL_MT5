@@ -136,9 +136,9 @@ TrainingMode = true
 
 The latest GBPUSD run used the same setting.
 
-This means the agent continued updating its model and memory while moving through the historical data.
+This means the agent continued updating its model and memory while moving through the historical data, which is a strength for real-life trading.
 
-Because of this, I do not treat the current results as strict out-of-sample evidence.
+However, this also makes me not treat the current results as strict out-of-sample evidence.
 
 They show how the system behaved **while learning from the same historical period it was being evaluated on**.
 
