@@ -1,8 +1,8 @@
 # DDQN-RL-MT5
 
-### A Memory-Augmented Reinforcement Learning Trading System for MetaTrader 5
+### A Memory-Augmented Reinforcement Learning Trading System on MetaTrader 5
 
-DDQN-RL-MT5 is a personal research project exploring how reinforcement learning and neural networks can be used directly inside MetaTrader 5.
+DDQN-RL-MT5 is a personal research project exploring how reinforcement learning and neural networks can be used directly inside trading decisions.
 
 The system is written natively in **MQL5**. It does not require Python or an external machine-learning runtime during execution.
 
@@ -10,9 +10,9 @@ The main research question is relatively simple:
 
 > **Can a trading system learn from its previous decisions, remember both good and bad trading experiences, and use that information to change future behaviour?**
 
-The current implementation combines a Double Dueling DQN with persistent memory, experience replay, market-regime awareness and risk-sensitive decision support.
+The current implementation combines a Double Dueling Deep-Q-Network (DQN) with persistent memory, experience replay, market-regime awareness and risk-sensitive decision support.
 
-The execution layer is still largely based on a **grid / basket trading framework**, so I see this project as an experimental environment for studying neural decision-making rather than a finished general-purpose RL trading solution.
+The execution layer is still largely based on a **grid / basket trading framework**, so I see this project as an experimental environment for studying neural decision-making rather than a fine-tuned machine-learning-based automatic trading solution.
 
 ---
 
