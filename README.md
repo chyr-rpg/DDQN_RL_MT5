@@ -926,12 +926,3 @@ Historical tests, reinforcement-learning behaviour and simulated results do not 
 
 Any market experimentation should use independent risk controls and appropriate supervision.
 
----
-
-## Author
-
-**CYR**
-
-Research interests:
-
-`Reinforcement Learning` · `Algorithmic Trading` · `Quantitative Finance` · `MQL5` · `Adaptive Systems`
