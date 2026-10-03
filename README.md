@@ -880,22 +880,6 @@ rather than unattended live deployment.
 
 ---
 
-# Current Research Questions
-
-Some questions I am still exploring include:
-
-- Can neural models reduce harmful grid additions?
-- Should the network control execution directly, or act as a decision layer?
-- Can dangerous historical episodes improve current risk decisions?
-- How much replay should come from recent versus rare events?
-- How stable are learned policies across different instruments?
-- Can regime-specific policies generalise better than one universal model?
-- How should reward distinguish efficient profit from high-risk recovery?
-
-I expect the architecture to continue changing as these questions are tested.
-
----
-
 # Contributions and Discussion
 
 This repository is mainly shared for technical discussion and experimentation.
